@@ -31,6 +31,9 @@ public class CoincapPriceService {
 
     @Value("${coincap.api.url}")
     private String coincapApiUrl;
+    @Value("${coincap.api.key}")
+    private String coincapApiKey;
+
 
     @PostConstruct
     public void init() {
