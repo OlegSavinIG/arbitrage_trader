@@ -9,26 +9,28 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import trader.arbitrage.client.MexcWebSocketClient;
 import trader.arbitrage.model.TokenPrice;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PriceService {
+public class MexcPriceService {
 
-    private final MexcWebSocketService webSocketService;
+    private final MexcWebSocketClient webSocketService;
     private final ObjectMapper objectMapper;
     private final Map<String, TokenPrice> lastPrices = new ConcurrentHashMap<>();
 
     @EventListener(ApplicationReadyEvent.class)
     public void initAfterStartup() {
         try {
-            log.info("Initializing PriceService...");
+            log.info("Initializing MexcPriceService...");
             // Initialize connection
             webSocketService.connect();
 
@@ -36,9 +38,9 @@ public class PriceService {
             for (String token : webSocketService.getConfiguredTokens()) {
                 subscribeAndLog(token);
             }
-            log.info("PriceService initialization completed successfully");
+            log.info("MexcPriceService initialization completed successfully");
         } catch (Exception e) {
-            log.error("Failed to initialize PriceService: {}", e.getMessage(), e);
+            log.error("Failed to initialize MexcPriceService: {}", e.getMessage(), e);
             // Don't throw the exception here - log it but allow the application to start
         }
     }
@@ -83,7 +85,19 @@ public class PriceService {
                         price.getTimestamp())
         );
     }
+    public TokenPrice getLatestPrice(String token) {
+        return lastPrices.get(token);
+    }
 
+    // New method to get all latest prices
+    public Map<String, TokenPrice> getAllLatestPrices() {
+        return new ConcurrentHashMap<>(lastPrices);
+    }
+
+    // New method to get all configured tokens
+    public List<String> getConfiguredTokens() {
+        return webSocketService.getConfiguredTokens();
+    }
     // This method would be called by the WebSocketService when messages are received
     public TokenPrice parseTokenPriceMessage(String message) {
         try {

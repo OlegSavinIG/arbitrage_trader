@@ -1,4 +1,4 @@
-package trader.arbitrage.service;
+package trader.arbitrage.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,17 +26,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MexcWebSocketService implements WebSocketHandler {
+public class MexcWebSocketClient implements WebSocketHandler {
 
-    //    private final MexcProperties mexcProperties;
     private final ObjectMapper objectMapper;
     private final Map<String, Sinks.Many<TokenPrice>> tokenPriceSinks = new ConcurrentHashMap<>();
     private final ReactorNettyWebSocketClient client = new ReactorNettyWebSocketClient();
     private WebSocketSession session;
-    //    @Value("${mexc.wsUrl}")
     private final String wsUrl = "wss://contract.mexc.com/edge";
-
-    //    @Value("#{'${mexc.tokens:BTCUSDT,ETHUSDT}'.split(',')}")
     private final List<String> tokens = List.of("BTC_USDT", "ETH_USDT");
 
     public void connect() {
@@ -72,10 +68,8 @@ public class MexcWebSocketService implements WebSocketHandler {
     public Mono<Void> handle(WebSocketSession session) {
         this.session = session;
 
-        // Subscribe to tokens from properties
         subscribeToTokens();
 
-        // Setup ping scheduler
         setupPingScheduler();
 
         return session.receive()
@@ -111,7 +105,6 @@ public class MexcWebSocketService implements WebSocketHandler {
                     .price(new BigDecimal(data.path("lastPrice").asText("0")))
                     .timestamp(Instant.ofEpochMilli(data.path("timestamp").asLong(System.currentTimeMillis())))
                     .build();
-            // Emit to the appropriate sink
             Sinks.Many<TokenPrice> sink = tokenPriceSinks.get(symbol);
             if (sink != null) {
                 sink.tryEmitNext(price);
@@ -127,11 +120,9 @@ public class MexcWebSocketService implements WebSocketHandler {
         for (String token : tokens) {
             log.info("Subscribing to token: {}", token);
 
-            // Create sink if it doesn't exist
             tokenPriceSinks.computeIfAbsent(token,
                     k -> Sinks.many().multicast().onBackpressureBuffer());
 
-            // Subscribe to ticker for this token
             String subscribeMessage = String.format(
                     "{\"method\":\"sub.ticker\",\"param\":{\"symbol\":\"%s\"}}", token);
 

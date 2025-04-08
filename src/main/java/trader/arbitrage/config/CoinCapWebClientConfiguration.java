@@ -18,7 +18,7 @@ import java.time.Duration;
 
 @Configuration
 @Slf4j
-public class CoinWebClientConfiguration {
+public class CoinCapWebClientConfiguration {
 
     @Bean
     public WebClient coinCapClient(
@@ -47,6 +47,7 @@ public class CoinWebClientConfiguration {
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxInMemorySize))
                 .build();
 
+
         return WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -58,7 +59,6 @@ public class CoinWebClientConfiguration {
                 .filter(logResponse())
                 .build();
     }
-
     // Logging filter for requests
     private ExchangeFilterFunction logRequest() {
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
