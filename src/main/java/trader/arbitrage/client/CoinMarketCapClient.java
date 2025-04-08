@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CoinMarketCapClient {
     private final WebClient coinCapClient;
-    private final List<String> tokens = List.of("BTC_USDT");
+    private final List<String> tokens;
     private final ObjectMapper objectMapper;
     private final Map<String, Sinks.Many<TokenPrice>> priceStreams = new HashMap<>();
 

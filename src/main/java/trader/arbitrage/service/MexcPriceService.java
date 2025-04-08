@@ -113,6 +113,7 @@ public class MexcPriceService {
             return TokenPrice.builder()
                     .symbol(data.path("symbol").asText())
                     .price(new BigDecimal(data.path("lastPrice").asText("0")))
+                    .exchange("MEXC")
                     .timestamp(Instant.ofEpochMilli(data.path("timestamp").asLong(System.currentTimeMillis())))
                     .build();
         } catch (JsonProcessingException e) {

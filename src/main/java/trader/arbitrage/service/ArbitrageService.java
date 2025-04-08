@@ -44,7 +44,7 @@ public class ArbitrageService {
 
         // Get all latest prices from both exchanges
         Map<String, TokenPrice> mexcPrices = getMexcLatestPrices();
-        Map<String, TokenPrice> coinmarketcapPrices = coinMarketCapClient.getAllLatestPrices();
+        Map<String, TokenPrice> coinmarketcapPrices = getCoinCapLatestPrices();
 
         if (mexcPrices.isEmpty() || coinmarketcapPrices.isEmpty()) {
             log.debug("Not enough price data available yet to check for arbitrage opportunities");
@@ -132,33 +132,10 @@ public class ArbitrageService {
      * Get all latest prices from MEXC
      */
     private Map<String, TokenPrice> getMexcLatestPrices() {
-        // This is a placeholder - you need to implement a method in MexcPriceService
-        // that returns all latest prices, similar to getAllLatestPrices() in CoinMarketCapService
-        // For now, I'll create a simple implementation:
-
-        Map<String, TokenPrice> result = new ConcurrentHashMap<>();
-
-        // Get the configured tokens from the MEXC service
-        for (String token : mexcPriceService.getConfiguredTokens()) {
-            // This assumes you have or will add a getLastPrice method to MexcPriceService
-            TokenPrice price = getLastPrice(token);
-            if (price != null) {
-                result.put(token, price);
-            }
-        }
-
-        return result;
+        return mexcPriceService.getAllLatestPrices();
     }
-
-    /**
-     * Helper method to get last price for a token from MEXC
-     * Note: You'll need to add this method to your MexcPriceService or access its lastPrices map
-     */
-    private TokenPrice getLastPrice(String token) {
-        // This is a placeholder - implement actual logic to get the last price from MexcPriceService
-        // For example, you could add a getLatestPrice(String token) method to MexcPriceService
-        // that returns the last price for the given token
-        return null; // Replace with actual implementation
+    private Map<String, TokenPrice> getCoinCapLatestPrices() {
+        return coinMarketCapClient.getAllLatestPrices();
     }
 
     /**

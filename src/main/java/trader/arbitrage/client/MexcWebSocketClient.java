@@ -33,7 +33,7 @@ public class MexcWebSocketClient implements WebSocketHandler {
     private final ReactorNettyWebSocketClient client = new ReactorNettyWebSocketClient();
     private WebSocketSession session;
     private final String wsUrl = "wss://contract.mexc.com/edge";
-    private final List<String> tokens = List.of("BTC_USDT", "ETH_USDT");
+    private final List<String> tokens;
 
     public void connect() {
         log.info("Connecting to MEXC WebSocket... {}", wsUrl);
