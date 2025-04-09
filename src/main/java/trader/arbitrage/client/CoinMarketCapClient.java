@@ -59,7 +59,6 @@ public class CoinMarketCapClient {
     public void init() {
         tokens.forEach(this::createPriceStream);
         log.info("Price streams created for tokens: {}", tokens);
-        log.info("Streams created: {}", priceStreams);
     }
 
     private void createPriceStream(String token) {
@@ -232,7 +231,6 @@ public class CoinMarketCapClient {
                     .timestamp(Instant.now())
                     .build();
 
-            log.info("TokenPrice from response - {}", tokenPrice);
             result.put(tokenPair, tokenPrice);
         });
     }
