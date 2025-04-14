@@ -1,0 +1,8 @@
+dexscreener:
+  base-url: /tokens/v1/{chainId}/{tokenAddresses}
+  tokens:
+    solana:
+      - symbol: RFC_USDT
+        address: C3DwDjT17gDvvCYC2nsdGHxDHVmQRdhKfpAdqQ29pump
+      - symbol: ALCH_USDT
+        address: HNg5PYJmtqcmzXrv6S9zP1CDKk5BgDuyFBxbvNApump
