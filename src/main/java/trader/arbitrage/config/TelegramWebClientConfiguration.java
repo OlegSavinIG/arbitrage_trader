@@ -1,5 +1,7 @@
 package trader.arbitrage.config;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,15 +19,20 @@ import java.time.Duration;
 
 @Configuration
 @Slf4j
+@RequiredArgsConstructor
 public class TelegramWebClientConfiguration {
+    private final Dotenv dotenv;
 
     @Bean
     public WebClient telegramWebClient(
             @Value("${telegram.api.url:https://api.telegram.org/bot}") String baseUrl,
-            @Value("${telegram.bot.token}") String botToken,
+//            @Value("${telegram.bot.token}") String botToken,
             @Value("${telegram.api.connection.timeout:3000}") int connectionTimeoutMillis,
             @Value("${telegram.api.read.timeout:5000}") int readTimeoutMillis
     ) {
+        String botToken = dotenv.get("TELEGRAM_BOT_TOKEN");
+
+
         // Create a connection provider with connection pooling
         ConnectionProvider provider = ConnectionProvider.builder("telegram-pool")
                 .maxConnections(20)

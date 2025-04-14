@@ -1,5 +1,6 @@
 package trader.arbitrage.telegram;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TelegramNotificationService {
 
     private final WebClient telegramWebClient;
+    private final Dotenv dotenv;
 
-    @Value("${telegram.chat-id}")
-    private String chatId;
 
     @Value("${telegram.enabled:false}")
     private boolean telegramEnabled;
@@ -49,6 +49,7 @@ public class TelegramNotificationService {
      * @return Mono<Boolean> indicating success or failure
      */
     public Mono<Boolean> sendArbitrageNotification(ArbitrageOpportunity opportunity) {
+        String chatId = dotenv.get("TELEGRAM_CHAT_ID");
         if (!telegramEnabled) {
             log.debug("Telegram notifications are disabled");
             return Mono.just(false);

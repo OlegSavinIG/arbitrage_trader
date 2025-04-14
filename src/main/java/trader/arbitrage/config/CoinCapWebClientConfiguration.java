@@ -1,5 +1,7 @@
 package trader.arbitrage.config;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,16 +20,19 @@ import java.time.Duration;
 
 @Configuration
 @Slf4j
+@RequiredArgsConstructor
 public class CoinCapWebClientConfiguration {
+    private final Dotenv dotenv;
+
 
     @Bean
     public WebClient coinCapClient(
             @Value("${coincap.api.url}") String baseUrl,
-            @Value("${coincap.api.key}") String apiKey,
             @Value("${coincap.api.connection.timeout:3000}") int connectionTimeoutMillis,
             @Value("${coincap.api.read.timeout:5000}") int readTimeoutMillis,
             @Value("${coincap.api.max.memory.size:16777216}") int maxInMemorySize // 16MB default
     ) {
+        String apiKey = dotenv.get("COINMARKETCAP_API_KEY");
         // Create a connection provider with connection pooling
         ConnectionProvider provider = ConnectionProvider.builder("coin-market-cap-pool")
                 .maxConnections(50)
@@ -59,6 +64,7 @@ public class CoinCapWebClientConfiguration {
                 .filter(logResponse())
                 .build();
     }
+
     // Logging filter for requests
     private ExchangeFilterFunction logRequest() {
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
