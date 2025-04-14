@@ -42,7 +42,7 @@ public class ArbitrageService {
      */
     @Scheduled(fixedRateString = "${arbitrage.check-interval:10000}")
     public void checkForArbitrageOpportunities() {
-        log.debug("Checking for arbitrage opportunities...");
+        log.info("Checking for arbitrage opportunities...");
 
         // Get all latest prices from both exchanges
         Map<String, TokenPrice> mexcPrices = getMexcLatestPrices();

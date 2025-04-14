@@ -20,7 +20,7 @@ public class CoinMarketCapService {
 
     private final CoinMarketCapClient coinMarketCapPriceService;
     private final Map<String, TokenPrice> lastPrices = new ConcurrentHashMap<>();
-    private final List<String> tokens = List.of("BTC_USDT", "ETH_USDT");
+    private final List<String> tokens;
 
     @EventListener(ApplicationReadyEvent.class)
     public void initAfterStartup() {
