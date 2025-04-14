@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import trader.arbitrage.model.ArbitrageOpportunity;
 import trader.arbitrage.model.TokenPrice;
+import trader.arbitrage.telegram.TelegramNotificationService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +26,7 @@ public class ArbitrageService {
 
     private final MexcPriceService mexcPriceService;
     private final CoinMarketCapService coinMarketCapClient;
+    private final TelegramNotificationService telegramService;
 
     @Value("${arbitrage.threshold:0.01}")
     private double arbitrageThreshold; // Default is 1% (0.01)
@@ -90,6 +92,15 @@ public class ArbitrageService {
                 // Log the opportunity
                 logArbitrageOpportunity(opportunity);
 
+                telegramService.sendArbitrageNotification(opportunity)
+                        .subscribe(
+                                sent -> {
+                                    if (sent) {
+                                        log.info("Telegram notification sent for arbitrage opportunity: {}", token);
+                                    }
+                                },
+                                error -> log.error("Error sending Telegram notification: {}", error.getMessage())
+                        );
                 // Save for future reference
                 lastDetectedOpportunities.put(token, opportunity);
             }
