@@ -66,7 +66,7 @@ public class TelegramNotificationService {
                         .path("/sendMessage")
                         .queryParam("chat_id", chatId)
                         .queryParam("text", message)
-                        .queryParam("parse_mode", "Markdown")
+                        .queryParam("parse_mode", "HTML")
                         .build())
                 .retrieve()
                 .bodyToMono(String.class)
@@ -90,13 +90,13 @@ public class TelegramNotificationService {
                 : "CoinMarketCap > MEXC";
 
         return String.format(
-                "🚨 *ARBITRAGE OPPORTUNITY* 🚨\n\n" +
-                        "💰 *Token*: %s\n" +
-                        "📊 *MEXC Price*: %s\n" +
-                        "📊 *CoinMarketCap Price*: %s\n" +
-                        "📈 *Price Difference*: %s%%\n" +
-                        "↔️ *Direction*: %s\n" +
-                        "⏰ *Timestamp*: %s",
+                "🚨 <b>ARBITRAGE OPPORTUNITY</b> 🚨\n\n" +
+                        "💰 <b>Token</b>: %s\n" +
+                        "📊 <b>MEXC Price</b>: %s\n" +
+                        "📊 <b>CoinMarketCap Price</b>: %s\n" +
+                        "📈 <b>Price Difference</b>: %s%%\n" +
+                        "↔️ <b>Direction</b>: %s\n" +
+                        "⏰ <b>Timestamp</b>: %s",
                 opportunity.getSymbol(),
                 opportunity.getMexcPrice(),
                 opportunity.getCoincapPrice(),
