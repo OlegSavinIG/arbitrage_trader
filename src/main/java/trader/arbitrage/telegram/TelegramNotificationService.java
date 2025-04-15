@@ -1,6 +1,7 @@
 package trader.arbitrage.telegram;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import io.micrometer.core.instrument.Counter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ public class TelegramNotificationService {
 
     private final WebClient telegramWebClient;
     private final Dotenv dotenv;
+    private final Counter telegramNotificationsCounter;
 
 
     @Value("${telegram.enabled:false}")
@@ -73,6 +75,7 @@ public class TelegramNotificationService {
                 .bodyToMono(String.class)
                 .map(response -> {
                     log.info("Telegram notification sent successfully for {}", opportunity.getSymbol());
+                    telegramNotificationsCounter.increment();
                     return true;
                 })
                 .onErrorResume(e -> {

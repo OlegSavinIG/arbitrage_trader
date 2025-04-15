@@ -2,6 +2,7 @@ package trader.arbitrage.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.Counter;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class CoinMarketCapClient {
+    private final Counter apiCallsCounter;
     private final WebClient coinCapClient;
     private final List<String> tokens;
     private final ObjectMapper objectMapper;
@@ -89,6 +91,7 @@ public class CoinMarketCapClient {
 
         // Increment API call counter before making the call
         apiCallsInCurrentMinute.incrementAndGet();
+        apiCallsCounter.increment();
 
         fetchTokenPrice(symbols)
                 .doOnNext(tokenPriceMap -> {

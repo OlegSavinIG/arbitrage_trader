@@ -1,5 +1,6 @@
 package trader.arbitrage.service;
 
+import io.micrometer.core.instrument.Counter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,8 +28,10 @@ public class ArbitrageService {
     private final MexcPriceService mexcPriceService;
     private final CoinMarketCapService coinMarketCapClient;
     private final TelegramNotificationService telegramService;
+    private final Counter arbitrageOpportunityCounter;
+    private final Counter telegramNotificationsCounter;
 
-    @Value("${arbitrage.threshold:0.01}")
+    @Value("${arbitrage.threshold}")
     private double arbitrageThreshold; // Default is 1% (0.01)
 
     @Value("${arbitrage.check-interval:5000}")
@@ -40,7 +43,7 @@ public class ArbitrageService {
     /**
      * Scheduled method to check for arbitrage opportunities between exchanges
      */
-    @Scheduled(fixedRateString = "${arbitrage.check-interval:10000}")
+    @Scheduled(fixedRateString = "${arbitrage.check-interval}")
     public void checkForArbitrageOpportunities() {
         log.info("Checking for arbitrage opportunities...");
 
@@ -80,6 +83,7 @@ public class ArbitrageService {
 
             // Check if difference exceeds threshold
             if (priceDiffPercent.abs().doubleValue() >= arbitrageThreshold) {
+                arbitrageOpportunityCounter.increment();
                 // Create arbitrage opportunity object
                 ArbitrageOpportunity opportunity = ArbitrageOpportunity.builder()
                         .symbol(token)
@@ -96,6 +100,7 @@ public class ArbitrageService {
                         .subscribe(
                                 sent -> {
                                     if (sent) {
+                                        telegramNotificationsCounter.increment();
                                         log.info("Telegram notification sent for arbitrage opportunity: {}", token);
                                     }
                                 },
