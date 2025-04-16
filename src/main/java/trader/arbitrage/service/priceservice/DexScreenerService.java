@@ -1,4 +1,4 @@
-package trader.arbitrage.service;
+package trader.arbitrage.service.priceservice;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,8 +6,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import trader.arbitrage.client.DexScreenerClient;
 import trader.arbitrage.model.TokenPrice;
-import trader.arbitrage.client.CoinMarketCapClient;
 
 import java.util.List;
 import java.util.Map;
@@ -16,61 +16,63 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CoinMarketCapService {
+public class DexScreenerService {
 
-    private final CoinMarketCapClient coinMarketCapPriceService;
+    private final DexScreenerClient dexScreenerClient;
     private final Map<String, TokenPrice> lastPrices = new ConcurrentHashMap<>();
     private final List<String> tokens;
 
     @EventListener(ApplicationReadyEvent.class)
     public void initAfterStartup() {
         try {
-            log.info("Initializing CoinMarketCapService...");
+            log.info("Initializing DexScreenerService...");
             for (String token : tokens) {
                 subscribeAndLog(token);
             }
-            log.info("CoinMarketCapService initialization completed successfully");
+            log.info("DexScreenerService initialization completed successfully");
         } catch (Exception e) {
-            log.error("Failed to initialize CoinMarketCapService: {}", e.getMessage(), e);
+            log.error("Failed to initialize DexScreenerService: {}", e.getMessage(), e);
         }
     }
 
     public Flux<TokenPrice> subscribeToTokenPrice(String token) {
-        log.info("Subscribing to token price for: {}", token);
-        return coinMarketCapPriceService.getPriceStream(token);
+        log.info("Subscribing to DEXScreener token price for: {}", token);
+        return dexScreenerClient.getPriceStream(token);
     }
 
     private void subscribeAndLog(String token) {
         subscribeToTokenPrice(token)
                 .subscribe(
                         price -> {
-                            lastPrices.put(token, price);
-                            logLastPrice(token);
+                            if (price != null) {
+                                lastPrices.put(token, price);
+                                logLastPrice(token);
+                            }
                         },
-                        error -> log.error("Error in price subscription for {}: {}", token, error.getMessage())
+                        error -> log.error("Error in DEXScreener price subscription for {}: {}", token, error.getMessage())
                 );
     }
 
     public void logLastPrice(String token) {
         TokenPrice price = lastPrices.get(token);
         if (price != null) {
-            log.info("Latest CoinMarketCap price for {}: {} at {}",
+            log.info("Latest DEXScreener price for {}: {} at {}",
                     price.getSymbol(),
                     price.getPrice(),
                     price.getTimestamp());
         } else {
-            log.info("No CoinMarketCap price data received yet for {}", token);
+            log.info("No DEXScreener price data received yet for {}", token);
         }
     }
 
     public void logAllLastPrices() {
         if (lastPrices.isEmpty()) {
-            log.info("No CoinMarketCap price data received yet for any token");
+            log.info("No DEXScreener price data received yet for any token");
             return;
         }
 
         lastPrices.forEach((token, price) ->
-                log.info("Logging CoinMarketCap price for {}: {} at {}",
+                log.info("Latest DEXScreener price for {}: {} at {}",
                         price.getSymbol(),
                         price.getPrice(),
                         price.getTimestamp())

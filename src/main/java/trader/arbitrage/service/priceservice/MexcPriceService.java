@@ -1,4 +1,4 @@
-package trader.arbitrage.service;
+package trader.arbitrage.service.priceservice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

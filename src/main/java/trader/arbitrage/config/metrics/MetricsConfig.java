@@ -5,7 +5,8 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import trader.arbitrage.service.ArbitrageService;
+import trader.arbitrage.service.arbitrage.BaseArbitrageService;
+import trader.arbitrage.service.arbitrage.metricscounter.ArbitrageOpportunityProvider;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,7 +23,7 @@ public class MetricsConfig {
     }
 
     @Bean
-    public Gauge arbitrageOpportunitiesGauge(MeterRegistry registry, ArbitrageService arbitrageService) {
+    public Gauge arbitrageOpportunitiesGauge(MeterRegistry registry, ArbitrageOpportunityProvider arbitrageService) {
         return Gauge.builder("arbitrage.opportunities.active",
                         () -> arbitrageService.getAllArbitrageOpportunities().size())
                 .description("Current number of active arbitrage opportunities")
