@@ -90,20 +90,21 @@ public class TelegramNotificationService {
      */
     private String formatArbitrageMessage(ArbitrageOpportunity opportunity) {
         String direction = opportunity.getPriceDifferencePercent().compareTo(java.math.BigDecimal.ZERO) > 0
-                ? "MEXC > CoinMarketCap"
-                : "CoinMarketCap > MEXC";
+                ? "MEXC > " + opportunity.getSecondExchangeName()
+                : opportunity.getSecondExchangeName() + " > MEXC";
 
         return String.format(
                 "🚨 <b>ARBITRAGE OPPORTUNITY</b> 🚨\n\n" +
                         "💰 <b>Token</b>: %s\n" +
                         "📊 <b>MEXC Price</b>: %s\n" +
-                        "📊 <b>CoinMarketCap Price</b>: %s\n" +
+                        "📊 <b>%s Price</b>: %s\n" +
                         "📈 <b>Price Difference</b>: %s%%\n" +
                         "↔️ <b>Direction</b>: %s\n" +
                         "⏰ <b>Timestamp</b>: %s",
                 opportunity.getSymbol(),
                 opportunity.getMexcPrice(),
-                opportunity.getCoincapPrice(),
+                opportunity.getSecondExchangePrice(),
+                opportunity.getSecondExchangePrice(),
                 opportunity.getPriceDifferencePercent().abs(),
                 direction,
                 opportunity.getTimestamp()

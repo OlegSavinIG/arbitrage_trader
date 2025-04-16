@@ -1,6 +1,7 @@
 package trader.arbitrage.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import io.micrometer.observation.ObservationRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,11 +23,11 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class TelegramWebClientConfiguration {
     private final Dotenv dotenv;
+    private final ObservationRegistry observationRegistry;
 
     @Bean
     public WebClient telegramWebClient(
             @Value("${telegram.api.url:https://api.telegram.org/bot}") String baseUrl,
-//            @Value("${telegram.bot.token}") String botToken,
             @Value("${telegram.api.connection.timeout:3000}") int connectionTimeoutMillis,
             @Value("${telegram.api.read.timeout:5000}") int readTimeoutMillis
     ) {
@@ -57,6 +58,7 @@ public class TelegramWebClientConfiguration {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .filter(logRequest())
                 .filter(logResponse())
+                .observationRegistry(observationRegistry)
                 .build();
     }
 

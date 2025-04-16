@@ -1,6 +1,5 @@
 package trader.arbitrage.service;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,96 +23,108 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ArbitrageService {
+public class MexcDexScreenerArbitrageService {
 
     private final MexcPriceService mexcPriceService;
-    private final CoinMarketCapService coinMarketCapClient;
+    private final DexScreenerService dexScreenerService;
     private final TelegramNotificationService telegramService;
-    private final Counter arbitrageOpportunityCounter;
-    private final Counter telegramNotificationsCounter;
 
     @Value("${arbitrage.threshold}")
     private double arbitrageThreshold; // Default is 1% (0.01)
 
     @Value("${arbitrage.check-interval}")
-    private long checkIntervalMs; // Default check interval is 10 seconds
+    private long checkIntervalMs; // Default check interval is 5 seconds
 
     // Keep track of detected opportunities
     private final Map<String, ArbitrageOpportunity> lastDetectedOpportunities = new ConcurrentHashMap<>();
 
     /**
-     * Scheduled method to check for arbitrage opportunities between exchanges
+     * Scheduled method to check for arbitrage opportunities between MEXC and DexScreener
      */
     @Scheduled(fixedRateString = "${arbitrage.check-interval}")
-    @Observed(name = "MexcCoinCheckForArbitrageOpportunities",
-            contextualName = "check-arbitrage-opportunities-mexccoin")
+    @Observed(name = "MexcDexCheckForArbitrageOpportunities",
+            contextualName = "check-arbitrage-opportunities-mexcdex")
     public void checkForArbitrageOpportunities() {
-        log.info("Checking for arbitrage opportunities...");
+        log.info("Checking for arbitrage opportunities between MEXC and DexScreener...");
 
         // Get all latest prices from both exchanges
         Map<String, TokenPrice> mexcPrices = getMexcLatestPrices();
-        Map<String, TokenPrice> coinmarketcapPrices = getCoinCapLatestPrices();
+        Map<String, TokenPrice> dexScreenerPrices = getDexScreenerLatestPrices();
 
-        if (mexcPrices.isEmpty() || coinmarketcapPrices.isEmpty()) {
+        if (mexcPrices.isEmpty() || dexScreenerPrices.isEmpty()) {
             log.debug("Not enough price data available yet to check for arbitrage opportunities");
             return;
         }
 
         // Get common tokens between both exchanges
         Set<String> commonTokens = mexcPrices.keySet().stream()
-                .filter(coinmarketcapPrices::containsKey)
+                .filter(dexScreenerPrices::containsKey)
                 .collect(Collectors.toSet());
 
         if (commonTokens.isEmpty()) {
-            log.debug("No common tokens found between exchanges");
+            log.debug("No common tokens found between MEXC and DexScreener");
             return;
         }
 
         // Check each common token for price difference
         for (String token : commonTokens) {
             TokenPrice mexcPrice = mexcPrices.get(token);
-            TokenPrice coinmarketcapPrice = coinmarketcapPrices.get(token);
+            TokenPrice dexScreenerPrice = dexScreenerPrices.get(token);
 
             // Skip if either price is null
-            if (mexcPrice == null || coinmarketcapPrice == null ||
-                    mexcPrice.getPrice() == null || coinmarketcapPrice.getPrice() == null) {
+            if (mexcPrice == null || dexScreenerPrice == null ||
+                    mexcPrice.getPrice() == null || dexScreenerPrice.getPrice() == null) {
                 continue;
             }
 
             // Calculate price difference percentage
             BigDecimal priceDiffPercent = calculatePriceDifferencePercent(
-                    mexcPrice.getPrice(), coinmarketcapPrice.getPrice());
+                    mexcPrice.getPrice(), dexScreenerPrice.getPrice());
 
             // Check if difference exceeds threshold
             if (priceDiffPercent.abs().doubleValue() >= arbitrageThreshold) {
-                arbitrageOpportunityCounter.increment();
                 // Create arbitrage opportunity object
                 ArbitrageOpportunity opportunity = ArbitrageOpportunity.builder()
                         .symbol(token)
                         .mexcPrice(mexcPrice.getPrice())
-                        .secondExchangePrice(coinmarketcapPrice.getPrice())
+                        .secondExchangePrice(dexScreenerPrice.getPrice()) // Reusing field for DexScreener price
                         .priceDifferencePercent(priceDiffPercent)
-                        .secondExchangeName(coinmarketcapPrice.getExchange())
+                        .secondExchangeName(dexScreenerPrice.getExchange())
                         .timestamp(LocalDateTime.now())
                         .build();
 
                 // Log the opportunity
                 logArbitrageOpportunity(opportunity);
 
-                telegramService.sendArbitrageNotification(opportunity)
+                // Send notification
+                telegramService.sendArbitrageNotification(formatMexcDexScreenerOpportunity(opportunity))
                         .subscribe(
                                 sent -> {
                                     if (sent) {
-                                        telegramNotificationsCounter.increment();
                                         log.info("Telegram notification sent for arbitrage opportunity: {}", token);
                                     }
                                 },
                                 error -> log.error("Error sending Telegram notification: {}", error.getMessage())
                         );
+
                 // Save for future reference
                 lastDetectedOpportunities.put(token, opportunity);
             }
         }
+    }
+
+    /**
+     * Format the opportunity for Telegram message
+     * This converts the ArbitrageOpportunity to use the correct exchange names
+     */
+    private ArbitrageOpportunity formatMexcDexScreenerOpportunity(ArbitrageOpportunity opportunity) {
+        return ArbitrageOpportunity.builder()
+                .symbol(opportunity.getSymbol())
+                .mexcPrice(opportunity.getMexcPrice())
+                .secondExchangePrice(opportunity.getSecondExchangePrice()) // This will appear as DexScreener price in the message
+                .priceDifferencePercent(opportunity.getPriceDifferencePercent())
+                .timestamp(opportunity.getTimestamp())
+                .build();
     }
 
     /**
@@ -135,13 +146,13 @@ public class ArbitrageService {
      */
     private void logArbitrageOpportunity(ArbitrageOpportunity opportunity) {
         String direction = opportunity.getPriceDifferencePercent().compareTo(BigDecimal.ZERO) > 0
-                ? "MEXC > CoinMarketCap"
-                : "CoinMarketCap > MEXC";
+                ? "MEXC > DexScreener"
+                : "DexScreener > MEXC";
 
         log.info("🚨 ARBITRAGE OPPORTUNITY DETECTED 🚨");
         log.info("Token: {}", opportunity.getSymbol());
         log.info("MEXC Price: {}", opportunity.getMexcPrice());
-        log.info("CoinMarketCap Price: {}", opportunity.getSecondExchangePrice());
+        log.info("DexScreener Price: {}", opportunity.getSecondExchangePrice()); // Reusing CoinCap field for DexScreener
         log.info("Price Difference: {}%", opportunity.getPriceDifferencePercent().abs());
         log.info("Direction: {}", direction);
         log.info("Timestamp: {}", opportunity.getTimestamp());
@@ -154,8 +165,12 @@ public class ArbitrageService {
     private Map<String, TokenPrice> getMexcLatestPrices() {
         return mexcPriceService.getAllLatestPrices();
     }
-    private Map<String, TokenPrice> getCoinCapLatestPrices() {
-        return coinMarketCapClient.getAllLatestPrices();
+
+    /**
+     * Get all latest prices from DexScreener
+     */
+    private Map<String, TokenPrice> getDexScreenerLatestPrices() {
+        return dexScreenerService.getAllLatestPrices();
     }
 
     /**

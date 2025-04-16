@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 public class ArbitrageOpportunity {
     private String symbol;
     private BigDecimal mexcPrice;
-    private BigDecimal coincapPrice;
+    private BigDecimal secondExchangePrice;
     private BigDecimal priceDifferencePercent;
+    private String secondExchangeName;
     private LocalDateTime timestamp;
 }

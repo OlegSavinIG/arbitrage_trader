@@ -6,3 +6,24 @@ dexscreener:
         address: C3DwDjT17gDvvCYC2nsdGHxDHVmQRdhKfpAdqQ29pump
       - symbol: ALCH_USDT
         address: HNg5PYJmtqcmzXrv6S9zP1CDKk5BgDuyFBxbvNApump
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    baggage:
+      remote-fields:
+        - request_id
+      correlation:
+        fields:
+          - request_id
+    propagation:
+      type: b3
+
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
