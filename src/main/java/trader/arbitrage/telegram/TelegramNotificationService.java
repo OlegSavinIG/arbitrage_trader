@@ -103,7 +103,7 @@ public class TelegramNotificationService {
                         "⏰ <b>Timestamp</b>: %s",
                 opportunity.getSymbol(),
                 opportunity.getMexcPrice(),
-                opportunity.getSecondExchangePrice(),
+                opportunity.getSecondExchangeName(),
                 opportunity.getSecondExchangePrice(),
                 opportunity.getPriceDifferencePercent().abs(),
                 direction,

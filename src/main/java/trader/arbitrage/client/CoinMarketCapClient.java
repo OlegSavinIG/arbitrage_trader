@@ -3,6 +3,7 @@ package trader.arbitrage.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
+import trader.arbitrage.config.metrics.TimerUtils;
 import trader.arbitrage.model.TokenPrice;
 
 import java.math.BigDecimal;
@@ -38,6 +40,7 @@ public class CoinMarketCapClient {
     private final WebClient coinCapClient;
     private final List<String> tokens;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry registry;
     private final Map<String, Sinks.Many<TokenPrice>> priceStreams = new HashMap<>();
 
     @Value("${coincap.api.max-attempts:3}")
@@ -125,13 +128,18 @@ public class CoinMarketCapClient {
      */
     private Mono<Map<String, TokenPrice>> fetchTokenPrice(String symbols) {
         log.info("Fetching price for symbols {}", symbols);
-        return coinCapClient.get()
+        return TimerUtils.timedMono(
+                () -> coinCapClient.get()
                 .uri(buildRequestUri(symbols))
                 .retrieve()
                 .bodyToMono(String.class)
                 .retryWhen(createRetrySpec())
                 .map(this::parseResponse)
-                .onErrorResume(this::handleError);
+                .onErrorResume(this::handleError),
+                registry,
+                "api.calls.latency",
+                "exchange", "CoinMarketCap"
+        );
     }
 
     /**

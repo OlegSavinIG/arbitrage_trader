@@ -19,8 +19,22 @@ management:
           - request_id
     propagation:
       type: b3
+    metrics:
+      enable:
+        jvm: true
+        system: true
+        process: true
+      distribution:
+        percentiles-histogram:
+          "[api.calls.latency]": true
+        percentiles:
+          "[api.calls.latency]": 0.5, 0.95, 0.99
+    endpoints:
+      web:
+        exposure:
+          include: health,info,prometheus,metrics
 
-  zipkin:
+zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
 
