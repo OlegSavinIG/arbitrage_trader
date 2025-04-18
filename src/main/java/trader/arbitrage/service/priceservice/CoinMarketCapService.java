@@ -6,8 +6,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import trader.arbitrage.model.TokenPrice;
 import trader.arbitrage.client.CoinMarketCapClient;
+import trader.arbitrage.model.TokenPrice;
 
 import java.util.List;
 import java.util.Map;
