@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,8 +26,9 @@ public class ClickHouseMigrationRunner {
     private final JdbcTemplate clickHouseJdbcTemplate;
 
     @EventListener(ApplicationReadyEvent.class)
-    public void runMigrations() {
+    public void runMigrations() throws SQLException {
         try {
+            Thread.sleep(10000);
             createMigrationsTable();
 
             List<String> applied = getAppliedMigrations();

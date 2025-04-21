@@ -19,6 +19,7 @@ public class ClickHouseConfig {
             @Value("${clickhouse.url}") String url,
             @Value("${clickhouse.user}") String user,
             @Value("${clickhouse.password}") String pass) {
+        log.info("Connecting to ClickHouse: URL={}, User={}", url, user);
         ClickHouseDataSource ds = null;
         try {
             ds = new ClickHouseDataSource(url, new Properties() {{
