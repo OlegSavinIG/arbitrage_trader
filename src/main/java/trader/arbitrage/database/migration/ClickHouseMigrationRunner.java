@@ -1,9 +1,7 @@
 package trader.arbitrage.database.migration;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
@@ -14,8 +12,14 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,13 +66,19 @@ public class ClickHouseMigrationRunner {
     }
 
     private void createMigrationsTable() {
-        clickHouseJdbcTemplate.execute("""
-            CREATE TABLE IF NOT EXISTS clickhouse_migrations (
-              filename String,
-              applied_at DateTime
-            ) ENGINE = MergeTree()
-            ORDER BY applied_at
-        """);
+        try (Connection conn = clickHouseJdbcTemplate.getDataSource().getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("""
+        CREATE TABLE IF NOT EXISTS clickhouse_migrations (
+            filename String,
+            applied_at DateTime
+        ) ENGINE = MergeTree()
+        ORDER BY tuple(applied_at, filename)
+    """);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private List<String> getAppliedMigrations() {

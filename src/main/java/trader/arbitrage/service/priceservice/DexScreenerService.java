@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import trader.arbitrage.client.DexScreenerClient;
 import trader.arbitrage.model.TokenPrice;
+import trader.arbitrage.service.clickhouse.ClickHouseService;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DexScreenerService {
 
     private final DexScreenerClient dexScreenerClient;
+    private final ClickHouseService clickHouseService;
     private final Map<String, TokenPrice> lastPrices = new ConcurrentHashMap<>();
     private final List<String> tokens;
 
@@ -60,6 +62,7 @@ public class DexScreenerService {
                     price.getSymbol(),
                     price.getPrice(),
                     price.getTimestamp());
+            clickHouseService.bufferPrice(price);
         } else {
             log.info("No DEXScreener price data received yet for {}", token);
         }

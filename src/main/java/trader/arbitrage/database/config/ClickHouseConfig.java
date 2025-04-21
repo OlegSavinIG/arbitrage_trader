@@ -22,10 +22,12 @@ public class ClickHouseConfig {
         log.info("Connecting to ClickHouse: URL={}, User={}", url, user);
         ClickHouseDataSource ds = null;
         try {
-            ds = new ClickHouseDataSource(url, new Properties() {{
-                put("user", user);
-                put("password", pass);
-            }});
+            Properties props = new Properties();
+            props.put("user", user);
+            props.put("password", pass);
+
+            ds = new ClickHouseDataSource(url, props);
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

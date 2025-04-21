@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import trader.arbitrage.client.MexcWebSocketClient;
 import trader.arbitrage.model.TokenPrice;
+import trader.arbitrage.service.clickhouse.ClickHouseService;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -24,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MexcPriceService {
 
     private final MexcWebSocketClient webSocketService;
+    private final ClickHouseService clickHouseService;
     private final ObjectMapper objectMapper;
     private final Map<String, TokenPrice> lastPrices = new ConcurrentHashMap<>();
 
@@ -67,6 +69,7 @@ public class MexcPriceService {
                     price.getSymbol(),
                     price.getPrice(),
                     price.getTimestamp());
+            clickHouseService.bufferPrice(price);
         } else {
             log.info("No price data received yet for {}", token);
         }

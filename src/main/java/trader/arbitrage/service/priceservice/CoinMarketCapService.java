@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import trader.arbitrage.client.CoinMarketCapClient;
 import trader.arbitrage.model.TokenPrice;
+import trader.arbitrage.service.clickhouse.ClickHouseService;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CoinMarketCapService {
 
     private final CoinMarketCapClient coinMarketCapPriceService;
+    private final ClickHouseService clickHouseService;
     private final Map<String, TokenPrice> lastPrices = new ConcurrentHashMap<>();
     private final List<String> tokens;
 
@@ -58,6 +60,7 @@ public class CoinMarketCapService {
                     price.getSymbol(),
                     price.getPrice(),
                     price.getTimestamp());
+            clickHouseService.bufferPrice(price);
         } else {
             log.info("No CoinMarketCap price data received yet for {}", token);
         }

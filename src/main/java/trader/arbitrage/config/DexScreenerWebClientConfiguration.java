@@ -22,7 +22,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class DexScreenerWebClientConfiguration {
 
-    @Bean
+    @Bean()
     public WebClient dexClient(
             @Value("${dexscreener.api.url:https://api.dexscreener.com}") String baseUrl,
             @Value("${dexscreener.api.connection.timeout:3000}") int connectionTimeoutMillis,

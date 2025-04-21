@@ -35,7 +35,7 @@ management:
           include: health,info,prometheus,metrics,beans
 
 clickhouse:
-  url: "jdbc:clickhouse://host.docker.internal:9000/arbitrage"
+  url: "jdbc:clickhouse://localhost:8123/arbitrage"
   user: default
   password: default
 

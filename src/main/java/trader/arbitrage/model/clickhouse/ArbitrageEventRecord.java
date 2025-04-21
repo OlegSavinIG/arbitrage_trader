@@ -1,6 +1,7 @@
 package trader.arbitrage.model.clickhouse;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ArbitrageEventRecord {
     private String symbol;
     private String primaryExchange;

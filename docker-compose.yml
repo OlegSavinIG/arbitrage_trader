@@ -55,6 +55,7 @@ services:
         - elasticsearch-data:/usr/share/elasticsearch/data
 
   clickhouse:
+    container_name: clickhouse
     image: clickhouse/clickhouse-server:latest
     ports:
       - "8123:8123"  # HTTP-порт

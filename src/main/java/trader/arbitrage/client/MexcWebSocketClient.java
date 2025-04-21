@@ -103,6 +103,7 @@ public class MexcWebSocketClient implements WebSocketHandler {
             TokenPrice price = TokenPrice.builder()
                     .symbol(symbol)
                     .price(new BigDecimal(data.path("lastPrice").asText("0")))
+                    .exchange("MEXC")
                     .timestamp(Instant.ofEpochMilli(data.path("timestamp").asLong(System.currentTimeMillis())))
                     .build();
             Sinks.Many<TokenPrice> sink = tokenPriceSinks.get(symbol);
