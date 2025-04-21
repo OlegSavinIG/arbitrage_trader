@@ -13,10 +13,13 @@ import trader.arbitrage.model.TokenPrice;
 import trader.arbitrage.model.clickhouse.ArbitrageEventRecord;
 import trader.arbitrage.model.clickhouse.TokenPriceRecord;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Сервис для буферизации и пакетной записи данных в ClickHouse.
@@ -91,6 +94,26 @@ public class ClickHouseService {
         eventBuffer.clear();
         repository.saveEventsBatch(toSave);
         log.info("Flushed {} arbitrage events to ClickHouse", toSave.size());
+    }
+    /**
+     * Запрашивает цены из ClickHouse по символу и диапазону.
+     */
+    public List<TokenPriceRecord> getPrices(String symbol, LocalDateTime from, LocalDateTime to) {
+        return repository.findPrices(symbol, from, to);
+    }
+
+    /**
+     * Запрашивает последнюю цену из ClickHouse.
+     */
+    public Optional<TokenPriceRecord> getLatestPrice(String symbol) {
+        return repository.findLatestPrice(symbol);
+    }
+
+    /**
+     * Запрашивает среднюю цену из ClickHouse по символу и диапазону.
+     */
+    public Optional<BigDecimal> getAveragePrice(String symbol, LocalDateTime from, LocalDateTime to) {
+        return repository.findAveragePrice(symbol, from, to);
     }
 
     /**
