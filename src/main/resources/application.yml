@@ -7,6 +7,19 @@ dexscreener:
       - symbol: ALCH_USDT
         address: HNg5PYJmtqcmzXrv6S9zP1CDKk5BgDuyFBxbvNApump
 
+pancake:
+  router-address: "0x10ED43C718714eb63d5aA57B78B54704E256024E"
+  wrapped-bnb:   "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+  busd:          "0xe9e7cea3dedca5984780bafc599bd69add087d56"
+  tokens:
+#    RFC: "0xHNg5PYJmtqcmzXrv6S9zP1CDKk5BgDuyFBxbvNAp"
+    Cake: "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"
+#    RFC: 0x...
+  update-interval: 5000
+bsc:
+  rpc-url: https://bsc-dataseed.binance.org/
+
+
 management:
   tracing:
     sampling:

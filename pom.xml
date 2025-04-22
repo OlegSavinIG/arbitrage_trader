@@ -156,6 +156,33 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.web3j</groupId>
+                <artifactId>web3j-maven-plugin</artifactId>
+                <version>${web3j.version}</version> <!-- 4.10.0 -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-sources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- Пакет, в который попадут сгенерированные классы -->
+                    <packageName>trader.arbitrage.client.contracts</packageName>
+                    <!-- Конкретные файлы ABI и BIN -->
+                    <abiFiles>
+                        <abiFile>${project.basedir}/src/main/resources/abi/PancakeRouter02.json</abiFile>
+                    </abiFiles>
+                    <binFiles>
+                        <binFile>${project.basedir}/src/main/resources/bin/PancakeRouter02.bin</binFile>
+                    </binFiles>
+                    <!-- Куда положить результат -->
+                    <outputDir>${project.build.directory}/generated-sources/web3j</outputDir>
+                </configuration>
+            </plugin>
+
+
         </plugins>
     </build>
 </project>

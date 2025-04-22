@@ -36,7 +36,6 @@ public class ClickHouseService {
     private final List<ArbitrageEventRecord> eventBuffer = Collections.synchronizedList(new ArrayList<>());
 
     public void bufferPrice(TokenPrice price) {
-        log.info("Buffered price {}, size - {}", price.getSymbol(), priceBuffer.size());
         priceBuffer.add(new TokenPriceRecord(
                 price.getSymbol(),
                 price.getExchange(),

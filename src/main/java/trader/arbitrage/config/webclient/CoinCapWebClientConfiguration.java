@@ -1,5 +1,6 @@
-package trader.arbitrage.config;
+package trader.arbitrage.config.webclient;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,17 +21,20 @@ import java.time.Duration;
 @Configuration
 @Slf4j
 @RequiredArgsConstructor
-public class DexScreenerWebClientConfiguration {
+public class CoinCapWebClientConfiguration {
+    private final Dotenv dotenv;
 
-    @Bean()
-    public WebClient dexClient(
-            @Value("${dexscreener.api.url:https://api.dexscreener.com}") String baseUrl,
-            @Value("${dexscreener.api.connection.timeout:3000}") int connectionTimeoutMillis,
-            @Value("${dexscreener.api.read.timeout:5000}") int readTimeoutMillis,
-            @Value("${dexscreener.api.max.memory.size:16777216}") int maxInMemorySize // 16MB default
+
+    @Bean
+    public WebClient coinCapClient(
+            @Value("${coincap.api.url}") String baseUrl,
+            @Value("${coincap.api.connection.timeout:3000}") int connectionTimeoutMillis,
+            @Value("${coincap.api.read.timeout:5000}") int readTimeoutMillis,
+            @Value("${coincap.api.max.memory.size:16777216}") int maxInMemorySize // 16MB default
     ) {
+        String apiKey = dotenv.get("COINMARKETCAP_API_KEY");
         // Create a connection provider with connection pooling
-        ConnectionProvider provider = ConnectionProvider.builder("dexscreener-pool")
+        ConnectionProvider provider = ConnectionProvider.builder("coin-market-cap-pool")
                 .maxConnections(50)
                 .maxIdleTime(Duration.ofSeconds(30))
                 .maxLifeTime(Duration.ofMinutes(5))
@@ -48,10 +52,12 @@ public class DexScreenerWebClientConfiguration {
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxInMemorySize))
                 .build();
 
+
         return WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader("X-CMC_PRO_API_KEY", apiKey)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .exchangeStrategies(exchangeStrategies)
                 .filter(logRequest())
@@ -63,9 +69,13 @@ public class DexScreenerWebClientConfiguration {
     private ExchangeFilterFunction logRequest() {
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
             if (log.isDebugEnabled()) {
-                log.debug("DEXScreener Request: {} {}", clientRequest.method(), clientRequest.url());
+                log.debug("Request: {} {}", clientRequest.method(), clientRequest.url());
                 clientRequest.headers().forEach((name, values) -> {
-                    values.forEach(value -> log.debug("{}={}", name, value));
+                    if (!name.equalsIgnoreCase("X-CMC_PRO_API_KEY")) { // Don't log the API key
+                        values.forEach(value -> log.debug("{}={}", name, value));
+                    } else {
+                        log.debug("{}=****", name);
+                    }
                 });
             }
             return Mono.just(clientRequest);
@@ -76,7 +86,7 @@ public class DexScreenerWebClientConfiguration {
     private ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
             if (log.isDebugEnabled()) {
-                log.debug("DEXScreener Response status: {}", clientResponse.statusCode());
+                log.debug("Response status: {}", clientResponse.statusCode());
             }
             return Mono.just(clientResponse);
         });

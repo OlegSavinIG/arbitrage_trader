@@ -1,4 +1,4 @@
-package trader.arbitrage.config;
+package trader.arbitrage.config.webclient;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import io.micrometer.observation.ObservationRegistry;
