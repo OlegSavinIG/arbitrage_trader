@@ -91,7 +91,10 @@ public abstract class BaseArbitrageService implements ArbitrageOpportunityProvid
             // Calculate price difference percentage
             BigDecimal priceDiffPercent = calculatePriceDifferencePercent(
                     primaryPrice.getPrice(), secondaryPrice.getPrice());
-
+                log.info("Current price difference between {} and {} = {}",
+                        primaryPrice.getSymbol(),
+                        secondaryPrice.getSymbol(),
+                        priceDiffPercent);
             // Check if difference exceeds threshold
             if (priceDiffPercent.abs().doubleValue() >= arbitrageThreshold) {
                 if (arbitrageOpportunityCounter != null) {

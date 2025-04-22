@@ -33,17 +33,14 @@ public class MexcPriceService {
     public void initAfterStartup() {
         try {
             log.info("Initializing MexcPriceService...");
-            // Initialize connection
             webSocketService.connect();
 
-            // Subscribe to token prices for all configured tokens
             for (String token : webSocketService.getConfiguredTokens()) {
                 subscribeAndLog(token);
             }
             log.info("MexcPriceService initialization completed successfully");
         } catch (Exception e) {
             log.error("Failed to initialize MexcPriceService: {}", e.getMessage(), e);
-            // Don't throw the exception here - log it but allow the application to start
         }
     }
     public Flux<TokenPrice> subscribeToTokenPrice(String token) {

@@ -68,35 +68,24 @@ public class DexScreenerService {
         }
     }
 
-    public void logAllLastPrices() {
-        if (lastPrices.isEmpty()) {
-            log.info("No DEXScreener price data received yet for any token");
-            return;
-        }
+//    public void logAllLastPrices() {
+//        if (lastPrices.isEmpty()) {
+//            log.info("No DEXScreener price data received yet for any token");
+//            return;
+//        }
+//
+//        lastPrices.forEach((token, price) ->
+//                log.info("Latest DEXScreener price for {}: {} at {}",
+//                        price.getSymbol(),
+//                        price.getPrice(),
+//                        price.getTimestamp())
+//        );
+//    }
 
-        lastPrices.forEach((token, price) ->
-                log.info("Latest DEXScreener price for {}: {} at {}",
-                        price.getSymbol(),
-                        price.getPrice(),
-                        price.getTimestamp())
-        );
-    }
-
-    /**
-     * Get the latest price for a specific token
-     *
-     * @param token The token symbol e.g., "BTC_USDT"
-     * @return The latest TokenPrice object or null if not available
-     */
     public TokenPrice getLatestPrice(String token) {
         return lastPrices.get(token);
     }
 
-    /**
-     * Get all the latest prices
-     *
-     * @return Map of token symbols to their latest prices
-     */
     public Map<String, TokenPrice> getAllLatestPrices() {
         return new ConcurrentHashMap<>(lastPrices);
     }

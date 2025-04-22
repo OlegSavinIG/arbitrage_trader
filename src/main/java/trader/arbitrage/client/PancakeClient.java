@@ -18,15 +18,17 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class PancakeOnChainClient {
+public class PancakeClient {
     private final Web3j web3j;
     private final TransactionManager txManager;
     private final ContractGasProvider gasProvider;
@@ -37,7 +39,6 @@ public class PancakeOnChainClient {
 
     @PostConstruct
     public void init() {
-        log.info("Prperties {}", props);
         router = PancakeRouter02.load(
                 props.getRouterAddress(),
                 web3j,
@@ -47,7 +48,8 @@ public class PancakeOnChainClient {
         props.getTokens().forEach((sym, addr) ->
                 streams.put(sym + "_USDT", Sinks.many().multicast().onBackpressureBuffer())
         );
-        log.info("PancakeOnChainClient initialized for tokens: {}", props.getTokens().keySet());
+        log.info("PancakeClient initialized for tokens: {}", props.getTokens().keySet());
+        log.info("Streams {} ", streams);
     }
 
     @Scheduled(fixedRateString = "${pancake.update-interval}")
@@ -56,11 +58,19 @@ public class PancakeOnChainClient {
             try {
                 String tokenSym = symbol.replace("_USDT", "");
                 String tokenAddr = props.getTokens().get(tokenSym);
+
+                if (tokenAddr == null || tokenAddr.isEmpty()) {
+                    log.error("Invalid token address for symbol: {}", tokenSym);
+                    return;
+                }
+
                 BigDecimal price = fetchPrice(tokenAddr);
+
                 if (price == null) {
                     log.error("Price for token {} could not be fetched", tokenSym);
                     return;
                 }
+
                 TokenPrice tp = TokenPrice.builder()
                         .symbol(symbol)
                         .price(price)
@@ -83,10 +93,9 @@ public class PancakeOnChainClient {
                     props.getBusd()
             );
 
-            log.debug("Fetching price for token at address: {}", tokenAddress);
+            log.debug("Fetching price for path: {}", path);
 
-            // Проверка корректности пути
-            if (path.contains(null) || path.contains("")) {
+            if (path.stream().anyMatch(e -> e == null || e.isEmpty())) {
                 log.error("Invalid path for price fetch: {}", path);
                 throw new IllegalArgumentException("Invalid token path provided.");
             }
@@ -119,21 +128,14 @@ public class PancakeOnChainClient {
             throw e;  // Перекидываем исключение дальше, чтобы оно было обработано в вызывающем коде
         }
     }
+    public Map<String, Sinks.Many<TokenPrice>> getStreams() {
+        return Collections.unmodifiableMap(streams);
+    }
 
 
     public Flux<TokenPrice> getPriceStream(String symbol) {
         Sinks.Many<TokenPrice> sink = streams.get(symbol);
         return sink != null ? sink.asFlux() : Flux.empty();
-//        return streams.getOrDefault(symbol, Sinks.many().multicast().onBackpressureBuffer()).asFlux();
-    }
-
-    public Map<String, TokenPrice> getAllLatestPrices() {
-        return streams.entrySet().stream()
-                .map(e -> Map.entry(
-                        e.getKey(),
-                        e.getValue().asFlux().blockFirst() // берём последний эмит
-                ))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
 

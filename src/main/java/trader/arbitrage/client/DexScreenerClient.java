@@ -50,11 +50,9 @@ public class DexScreenerClient {
     @Value("${dexscreener.api.max-backoff:10000}")
     private long maxBackoffMillis;
 
-    // Track API calls within time windows
     private final AtomicInteger apiCallsInCurrentMinute = new AtomicInteger(0);
     private long currentMinuteStartTime = System.currentTimeMillis();
 
-    // DEXScreener typically has a rate limit, being conservative
     @Value("${dexscreener.api.calls-per-minute:45}")
     private int maxCallsPerMinute;
 
@@ -95,7 +93,6 @@ public class DexScreenerClient {
 
         for (String chainID : dexProperties.getTokens().keySet()) {
             List<DexscreenerProperties.Token> tokens = dexProperties.getTokens().get(chainID);
-            // Increment API call counter before making the call
             apiCallsInCurrentMinute.incrementAndGet();
 
             fetchTokenPrice(chainID, tokens)

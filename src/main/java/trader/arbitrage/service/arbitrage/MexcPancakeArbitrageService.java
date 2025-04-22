@@ -37,7 +37,7 @@ public class MexcPancakeArbitrageService extends BaseArbitrageService {
     @Observed(name = "MexcPancakeCheck", contextualName = "arb-mexc-pancake")
     public void checkForArbitrageOpportunities() {
         Map<String, TokenPrice> mPrices = mexc.getAllLatestPrices();
-        Map<String, TokenPrice> pPrices = pancake.getAllLatestPrices();
+        Map<String, TokenPrice> pPrices = pancake.getLatestSnapshot();
         super.checkForArbitrageOpportunities(mPrices, pPrices, PRIMARY, SECONDARY);
     }
 }
