@@ -11,6 +11,5 @@ public class ArbitrageApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ArbitrageApplication.class, args);
-
     }
 }

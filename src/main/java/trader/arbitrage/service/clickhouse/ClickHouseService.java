@@ -21,9 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Сервис для буферизации и пакетной записи данных в ClickHouse.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -35,13 +32,9 @@ public class ClickHouseService {
     @Value("${clickhouse.batch-size:10}")
     private int eventBatchSize;
 
-    // Буферы
     private final List<TokenPriceRecord> priceBuffer = Collections.synchronizedList(new ArrayList<>());
     private final List<ArbitrageEventRecord> eventBuffer = Collections.synchronizedList(new ArrayList<>());
 
-    /**
-     * Буферизует запись цены для последующей пакетной вставки.
-     */
     public void bufferPrice(TokenPrice price) {
         log.info("Buffered price {}, size - {}", price.getSymbol(), priceBuffer.size());
         priceBuffer.add(new TokenPriceRecord(
@@ -55,9 +48,6 @@ public class ClickHouseService {
         }
     }
 
-    /**
-     * Буферизует арбитражное событие.
-     */
     public void bufferEvent(ArbitrageOpportunity opp) {
         log.info("Buffered event {}, size - {}", opp.getSymbol(), eventBuffer.size());
         eventBuffer.add(new ArbitrageEventRecord(
@@ -74,9 +64,6 @@ public class ClickHouseService {
         }
     }
 
-    /**
-     * Синхронный сброс буфера цен.
-     */
     public synchronized void flushPrices() {
         if (priceBuffer.isEmpty()) return;
         List<TokenPriceRecord> toSave = new ArrayList<>(priceBuffer);
@@ -85,9 +72,6 @@ public class ClickHouseService {
         log.info("Flushed {} price records to ClickHouse", toSave.size());
     }
 
-    /**
-     * Синхронный сброс буфера событий.
-     */
     public synchronized void flushEvents() {
         if (eventBuffer.isEmpty()) return;
         List<ArbitrageEventRecord> toSave = new ArrayList<>(eventBuffer);
@@ -95,30 +79,19 @@ public class ClickHouseService {
         repository.saveEventsBatch(toSave);
         log.info("Flushed {} arbitrage events to ClickHouse", toSave.size());
     }
-    /**
-     * Запрашивает цены из ClickHouse по символу и диапазону.
-     */
+
     public List<TokenPriceRecord> getPrices(String symbol, LocalDateTime from, LocalDateTime to) {
         return repository.findPrices(symbol, from, to);
     }
 
-    /**
-     * Запрашивает последнюю цену из ClickHouse.
-     */
     public Optional<TokenPriceRecord> getLatestPrice(String symbol) {
         return repository.findLatestPrice(symbol);
     }
 
-    /**
-     * Запрашивает среднюю цену из ClickHouse по символу и диапазону.
-     */
     public Optional<BigDecimal> getAveragePrice(String symbol, LocalDateTime from, LocalDateTime to) {
         return repository.findAveragePrice(symbol, from, to);
     }
 
-    /**
-     * Сбрасываем остаток при старте приложения, чтобы гарантировать чистоту буферов.
-     */
     @EventListener(ApplicationReadyEvent.class)
     public void onAppReady() {
         // на случай, если были данные до старта
@@ -126,9 +99,6 @@ public class ClickHouseService {
         flushEvents();
     }
 
-    /**
-     * Сбрасываем остаток перед завершением.
-     */
     @PreDestroy
     public void onDestroy() {
         flushPrices();
