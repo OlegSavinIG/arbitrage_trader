@@ -62,7 +62,7 @@ public class DexScreenerService {
                     price.getSymbol(),
                     price.getPrice(),
                     price.getTimestamp());
-            clickHouseService.bufferPrice(price);
+            clickHouseService.bufferPriceReactive(price);
         } else {
             log.info("No DEXScreener price data received yet for {}", token);
         }

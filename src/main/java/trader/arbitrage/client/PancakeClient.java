@@ -21,9 +21,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -128,6 +126,7 @@ public class PancakeClient {
             throw e;  // Перекидываем исключение дальше, чтобы оно было обработано в вызывающем коде
         }
     }
+
     public Map<String, Sinks.Many<TokenPrice>> getStreams() {
         return Collections.unmodifiableMap(streams);
     }

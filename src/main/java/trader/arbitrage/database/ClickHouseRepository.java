@@ -23,11 +23,14 @@ import java.util.Optional;
 public class ClickHouseRepository {
     private static final String PRICE_SQL =
             "INSERT INTO token_prices " +
-                    "(symbol, exchange, price, timestamp) VALUES (?, ?, ?, ?)";
+                    "(symbol, exchange, price, timestamp) VALUES (?, ?, ?, ?) " +
+                    "SETTINGS input_format_allow_errors_ratio = 0.1";
+
     private static final String EVENT_SQL =
             "INSERT INTO arbitrage_events " +
                     "(symbol, primary_exchange, secondary_exchange, primary_price, " +
-                    "secondary_price, diff_percent, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    "secondary_price, diff_percent, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?) " +
+                    "SETTINGS input_format_allow_errors_num = 50";
     private static final String SELECT_PRICES_SQL =
             "SELECT symbol, exchange, price, timestamp " +
                     "FROM token_prices " +

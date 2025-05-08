@@ -60,7 +60,7 @@ public class CoinMarketCapService {
                     price.getSymbol(),
                     price.getPrice(),
                     price.getTimestamp());
-            clickHouseService.bufferPrice(price);
+            clickHouseService.bufferPriceReactive(price);
         } else {
             log.info("No CoinMarketCap price data received yet for {}", token);
         }
